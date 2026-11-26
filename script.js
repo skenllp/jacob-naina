@@ -5,7 +5,7 @@
   const CONFIG = {
     RSVP_ENDPOINT: 'https://script.google.com/macros/s/AKfycbzIgaa4W6th3mFLH9rQ2ejnXeIMVMXvegf2Cjhp6FQNmZhGqwEZKB7zxeCChbnjnVQk/exec',
     RSVP_TIMEOUT_MS: 20000,
-    MUSIC_SRC: 'assets/music.m4a',
+    MUSIC_SRC: 'assets/music.mp3',
     WEDDING_ISO: '2026-12-26T15:00:00+05:30',
     PROVISIONAL_DURATION_MIN: 120,
     EVENTS: [
