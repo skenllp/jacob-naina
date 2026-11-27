@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -36,8 +36,92 @@
   <button id="skipBtn" class="opening__skip" type="button">Skip</button>
 </div>
 
-<button id="musicBtn" class="music" type="button" aria-label="Play music" aria-pressed="false" hidden>♪</button>
-<audio id="bgMusic" loop preload="none"></audio>
+<button id="musicBtn" class="music" type="button" aria-label="Play music" title="Play music" aria-pressed="false">
+  <span class="music__ring" aria-hidden="true"></span>
+  <svg class="music__icon music__icon--on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+  <svg class="music__icon music__icon--off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="m16 9 5 6"/><path d="m21 9-5 6"/></svg>
+</button>
+<audio id="bgMusic" loop preload="auto" playsinline src="assets/music.mp3">
+  <source src="assets/music.mp3" type="audio/mpeg">
+</audio>
+
+<!-- MUSIC: hardcoded here on purpose.
+     1. The source lives in the markup, so the song works even if script.js never runs.
+     2. This block is above script.js, so its #openBtn handler is registered FIRST and
+        audio.play() claims the tap before the opening video calls ov.play(). Mobile WebKit
+        unlocks only one media element per gesture, and the video was winning it. -->
+<script>
+(function () {
+  var audio = document.getElementById('bgMusic');
+  var btn   = document.getElementById('musicBtn');
+  if (!audio || !btn) return;
+
+  var want = false;          // what the guest chose
+  var armed = false;         // a retry-on-next-tap is pending
+  audio.volume = 0.6;
+  try { audio.load(); } catch (e) {}
+
+  function paint(on) {
+    var label = on ? 'Stop music' : 'Play music';
+    btn.setAttribute('aria-pressed', String(on));
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+  }
+
+  // If the browser refuses this gesture, try again on the very next one.
+  function arm() {
+    if (armed) return;
+    armed = true;
+    var retry = function () {
+      armed = false;
+      ['pointerdown', 'touchend', 'click', 'keydown'].forEach(function (t) {
+        document.removeEventListener(t, retry, true);
+      });
+      if (want) play();
+    };
+    ['pointerdown', 'touchend', 'click', 'keydown'].forEach(function (t) {
+      document.addEventListener(t, retry, true);
+    });
+  }
+
+  function play() {
+    var p;
+    try { p = audio.play(); } catch (e) { paint(false); arm(); return; }
+    if (p && p.then) p.then(function () { paint(true); }).catch(function () { paint(false); arm(); });
+    else paint(true);
+  }
+
+  function setMusic(on) {
+    want = on;
+    if (on) play();
+    else { audio.pause(); paint(false); }
+  }
+
+  // Start with the tap on "Open Invitation" (registered before the video handler)
+  var open = document.getElementById('openBtn');
+  if (open) open.addEventListener('click', function () { setMusic(true); });
+
+  // Floating button toggles
+  btn.addEventListener('click', function () { setMusic(audio.paused); });
+
+  audio.addEventListener('play',  function () { paint(true); });
+  audio.addEventListener('pause', function () { paint(false); });
+  audio.addEventListener('error', function () { paint(false); });
+
+  // Full stop when the page goes away
+  function stop() { try { audio.pause(); audio.currentTime = 0; } catch (e) {} paint(false); }
+  window.addEventListener('pagehide', stop);
+  window.addEventListener('beforeunload', stop);
+
+  // Pause while the tab is hidden, resume on return if the guest had it on
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) audio.pause();
+    else if (want) play();
+  });
+
+  window.__music = { set: setMusic };   // script.js defers to this
+})();
+</script>
 
 <main id="top" tabindex="-1">
 
@@ -79,11 +163,11 @@
 <!-- 4. BRIDE & GROOM -->
 <section class="couple paper" id="couple" style="--bgpos:center top">
   <div class="wrap center">
-    <h2 class="title" data-reveal>Two Hearts, One Promise</h2>
+    <h2 class="title" data-reveal>Bride and groom together</h2>
     <span class="gold-line" data-line aria-hidden="true"></span>
     <div class="duo">
       <article class="person" data-reveal>
-        <figure class="portrait"><img src="assets/groom.webp" alt="Jacob Johnson" loading="lazy" decoding="async" width="640" height="960"></figure>
+        <figure class="portrait"><img src="assets/photos/groom.png" alt="Jacob Johnson" loading="lazy" decoding="async" width="640" height="960"></figure>
         <h3 class="person__name">Jacob Johnson</h3>
         <p class="small"> son of</p>
         <p class="person__parents">Mrs. Magi Johnson<br>&amp; Mr. Johnson NC</p>
@@ -93,7 +177,7 @@
       </article>
       <span class="vline" aria-hidden="true"></span>
       <article class="person" data-reveal>
-        <figure class="portrait"><img src="assets/bride.webp" alt="Naina Nixon" loading="lazy" decoding="async" width="640" height="960"></figure>
+        <figure class="portrait"><img src="assets/photos/bride.png" alt="Naina Nixon" loading="lazy" decoding="async" width="640" height="960"></figure>
         <h3 class="person__name">Naina Nixon</h3>
         <p class="small"> daughter of</p>
         <p class="person__parents">Mrs. Maria Terine<br>&amp; Mr. Raymond Nixon George</p>
@@ -106,26 +190,24 @@
   </div>
 </section>
 
-<!-- 4b. MOMENTS (commented out – no photos yet)
+<!-- 4b. MOMENTS -->
 <section class="moments" id="moments">
   <div class="wrap center">
     <h2 class="title" data-reveal>A Few of Our Favourite Moments</h2>
     <span class="gold-line" data-line aria-hidden="true"></span>
     <div class="mgrid">
-      <button class="mshot" type="button" data-full="assets/moment-1.webp" data-reveal aria-label="Open photo 1 of 4"><img src="assets/moment-1-sm.webp" alt="Jacob and Naina" loading="lazy" decoding="async" width="560" height="840"></button>
-      <button class="mshot" type="button" data-full="assets/moment-2.webp" data-reveal aria-label="Open photo 2 of 4"><img src="assets/moment-2-sm.webp" alt="Jacob and Naina" loading="lazy" decoding="async" width="560" height="840"></button>
-      <button class="mshot" type="button" data-full="assets/moment-3.webp" data-reveal aria-label="Open photo 3 of 4"><img src="assets/moment-3-sm.webp" alt="Jacob and Naina" loading="lazy" decoding="async" width="560" height="840"></button>
-      <button class="mshot" type="button" data-full="assets/moment-4.webp" data-reveal aria-label="Open photo 4 of 4"><img src="assets/moment-4-sm.webp" alt="Jacob and Naina" loading="lazy" decoding="async" width="560" height="840"></button>
+      <button class="mshot" type="button" data-full="assets/moment-1.webp" data-reveal aria-label="Open photo 1 of 3"><img src="assets/moment-1-sm.webp" alt="Jacob and Naina" loading="lazy" decoding="async" width="560" height="747"></button>
+      <button class="mshot" type="button" data-full="assets/moment-2.webp" data-reveal aria-label="Open photo 2 of 3"><img src="assets/moment-2-sm.webp" alt="Jacob and Naina" loading="lazy" decoding="async" width="560" height="747"></button>
+      <button class="mshot" type="button" data-full="assets/moment-3.webp" data-reveal aria-label="Open photo 3 of 3"><img src="assets/moment-3-sm.webp" alt="Jacob and Naina" loading="lazy" decoding="async" width="560" height="747"></button>
     </div>
   </div>
 </section>
 <dialog id="lightbox" class="lightbox" aria-label="Photo viewer">
-  <button class="lb-btn lb-close" type="button" aria-label="Close photo">×</button>
-  <button class="lb-btn lb-prev" type="button" aria-label="Previous photo">‹</button>
+  <button class="lb-btn lb-close" type="button" aria-label="Close photo">&times;</button>
+  <button class="lb-btn lb-prev" type="button" aria-label="Previous photo">&lsaquo;</button>
   <img id="lbImg" alt="">
-  <button class="lb-btn lb-next" type="button" aria-label="Next photo">›</button>
+  <button class="lb-btn lb-next" type="button" aria-label="Next photo">&rsaquo;</button>
 </dialog>
--->
 
 <!-- 5. CELEBRATIONS -->
 <div class="events" id="celebrations">
@@ -206,6 +288,7 @@
         <h3>Wedding Ceremony</h3>
         <p>Saturday, 26 December 2026<br>3:00 PM</p>
         <p class="small">Immaculate Conception Church, Pullichira</p>
+        <a class="btn" href="https://maps.app.goo.gl/sm8K8Xh4AhdyfHU47" target="_blank" rel="noopener noreferrer">Open in Maps</a>
       </div>
       <div class="vcard" data-reveal>
         <h3>Reception</h3>

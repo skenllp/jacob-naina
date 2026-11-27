@@ -5,7 +5,6 @@
   const CONFIG = {
     RSVP_ENDPOINT: 'https://script.google.com/macros/s/AKfycbzIgaa4W6th3mFLH9rQ2ejnXeIMVMXvegf2Cjhp6FQNmZhGqwEZKB7zxeCChbnjnVQk/exec',
     RSVP_TIMEOUT_MS: 20000,
-    MUSIC_SRC: 'assets/music.mp3',
     WEDDING_ISO: '2026-12-26T15:00:00+05:30',
     PROVISIONAL_DURATION_MIN: 120,
     EVENTS: [
@@ -290,15 +289,10 @@
   });
   $('#toTop').addEventListener('click', e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); });
 
-  /* ---------- MUSIC (only after a tap) ---------- */
-  const mBtn = $('#musicBtn'), audio = $('#bgMusic');
-  const paint = on => { mBtn.setAttribute('aria-pressed', String(on)); mBtn.setAttribute('aria-label', on ? 'Pause music' : 'Play music'); };
-  function setMusic(on) {
-    if (on) audio.play().then(() => paint(true)).catch(() => paint(false)); else { audio.pause(); paint(false); }
-  }
-  if (CONFIG.MUSIC_SRC) {
-    audio.src = CONFIG.MUSIC_SRC; audio.volume = 0.6; mBtn.hidden = false;
-    mBtn.addEventListener('click', () => setMusic(audio.paused));
-    $('#openBtn').addEventListener('click', () => setMusic(true));
-  }
+  /* ---------- MUSIC ----------
+     Handled by the inline block in index.html, which owns #bgMusic and #musicBtn.
+     It is hardcoded there so the song still works if this file fails to load, and so its
+     #openBtn listener registers before startOpening() and claims the tap ahead of ov.play().
+     Nothing to do here; use window.__music.set(true/false) if you ever need to drive it. */
+
 })();
