@@ -191,7 +191,11 @@ textarea{resize:vertical}
 .final__line{font:italic 300 clamp(24px,5vw,36px) var(--serif-names);margin-bottom:18px}
 .final__names{font:400 clamp(46px,12vw,92px)/1.05 var(--serif-names)}
 .final__date{margin:10px 0 18px;letter-spacing:.34em;text-indent:.34em;color:var(--gold-d)}
-.final__love{font:italic 400 clamp(20px,3vw,26px) var(--serif-names);margin-bottom:34px}
+.final__love{font:italic 400 clamp(20px,3vw,26px) var(--serif-names);margin-bottom:20px}
+.final__siblings{margin-bottom:28px}
+.final__siblings-label{font:italic 300 clamp(.85rem,2vw,1rem)/1.4 var(--serif-names);color:var(--gold-d);letter-spacing:.06em;margin-bottom:8px}
+.final__siblings-list{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 20px}
+.final__siblings-list li{font:300 clamp(.78rem,1.8vw,.9rem)/1.6 var(--sans);color:var(--gold-d);opacity:.85;letter-spacing:.12em}
 .final__actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
 
 @media (min-width:900px){
